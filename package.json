@@ -12,6 +12,7 @@
     "lint:eslint": "eslint . --fix --cache"
   },
   "dependencies": {
+    "@kjgl77/datav-vue3": "^1.7.4",
     "echarts": "^6.0.0",
     "element-plus": "^2.13.6",
     "pinia": "^3.0.4",

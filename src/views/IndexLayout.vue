@@ -6,6 +6,8 @@ import PressureChart from '../elements/PressureChart.vue'
 import EventChart from '../elements/EventChart.vue'
 import SensorTable from '../elements/SensorTable.vue'
 import CarCards from '../elements/CarCards.vue'
+import { Decoration5 } from '@kjgl77/datav-vue3'
+
 
 const progressData = [
   { label: '已完工', value: 15, unit: 'km', percent: 75 },
@@ -27,11 +29,10 @@ const currentCars = [
 </script>
 
 <template>
-  <el-row>
-    <el-col :span="24">
-      <HeaderCard />
-    </el-col>
-  </el-row>
+  <div style="justify-content: center;">
+  <HeaderCard />
+  <Decoration5 style="width:300px; height:20px; justify-content: center;" />
+  </div>
 
   <el-row >
     <el-col :span="6">
