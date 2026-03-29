@@ -27,46 +27,58 @@ const currentCars = [
 </script>
 
 <template>
-  <el-header class="header">
+  <el-row>
+    <el-col :span="24">
       <HeaderCard />
-  </el-header>
+    </el-col>
+  </el-row>
 
-  <el-row :gutter="20">
-    <el-col :span="8">
+  <el-row >
+    <el-col :span="6">
+      <div class="chart-row">
       <SensorTable :sensorStats="sensorStats" />
-    </el-col>
-    <el-col :span="8">
-      <ProgressCards :progressData="progressData" />
-    </el-col>
-    <el-col :span="8">
-      <EventChart />
-    </el-col>
-  </el-row>
-
-  <el-row :gutter="20">
-    <el-col :span="8">
+      </div>
+      <div class="chart-row">
       <TempChart />
-    </el-col>
-    <el-col :span=" 8">
-      此处是地图
-    </el-col>
-    <el-col :span="8">
-      <CarCards :currentCars="currentCars" />
-    </el-col>
-  </el-row>
-
-  <el-row :gutter="20">
-    <el-col :span="8">
+      </div>
+      <div class="chart-row">
       <PressureChart />
+      </div>
     </el-col>
-    <el-col :span=" 8">
+
+    <el-col :span="12">
+      <div class="chart-row">
+      <ProgressCards :progressData="progressData" />
+      </div>
+      <div class="chart-row" style="background-color: aliceblue;">
+      此处是地图
+      </div>
+      <div class="chart-row" style="background-color: aliceblue;">
       此处是车辆日志表
+      </div>
     </el-col>
-    <el-col :span="4">
-      此处是实时镜头1
-    </el-col>
-    <el-col :span="4">
-      此处是实时镜头2
+
+    <el-col :span="6">
+      <div class="chart-row">
+      <EventChart />
+      </div>
+      <div class="chart-row">
+      <CarCards :currentCars="currentCars" />
+      </div>
+      <div class="chart-row">
+      <el-row>
+        <el-col :span="12" style="background-color: aliceblue;">
+          <div>
+          此处是实时镜头1
+          </div>
+        </el-col>
+        <el-col :span="12" style="background-color: aliceblue;">
+          <div>
+          此处是实时镜头2
+          </div>
+        </el-col>
+      </el-row>
+      </div>
     </el-col>
   </el-row>
 </template>
@@ -86,6 +98,8 @@ const currentCars = [
   border-radius: 4px;
   min-height: 36px;
 }
+
+.chart-row { margin-top: 20px; }
 </style>
 <!--
 

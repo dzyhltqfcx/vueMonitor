@@ -22,6 +22,7 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  background: #000000;
 }
 .slide-left-enter {
   opacity: 0;

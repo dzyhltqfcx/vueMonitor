@@ -9,7 +9,7 @@
 </script>
 
 <style scoped>
-.header { padding: 16px 24px; background: #0f2143; color: #ffffff; text-align: center; }
+.header { padding: 0; background: #0f2143; color: #ffffff; text-align: center; width:100%; }
 .header h1 { margin: 0; font-size: 1.8rem; }
 </style>
 
