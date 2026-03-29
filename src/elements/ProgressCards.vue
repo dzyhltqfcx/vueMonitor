@@ -16,9 +16,12 @@
 defineProps({
   progressData: Array
 })
+
+
 </script>
 
 <style scoped>
 .panel-card { background: rgba(5, 35, 65, 0.8); border: 1px solid #0f4f87; border-radius: 8px; }
 .card-top { display: flex; justify-content: space-between; font-size: 1.1rem; margin-bottom: 10px; }
 </style>
+
