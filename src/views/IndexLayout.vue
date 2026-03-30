@@ -6,7 +6,6 @@ import PressureChart from '../elements/PressureChart.vue'
 import EventChart from '../elements/EventChart.vue'
 import SensorTable from '../elements/SensorTable.vue'
 import CarCards from '../elements/CarCards.vue'
-import { Decoration5 } from '@kjgl77/datav-vue3'
 
 
 const progressData = [
@@ -29,9 +28,8 @@ const currentCars = [
 </script>
 
 <template>
-  <div style="justify-content: center;">
-  <HeaderCard />
-  <Decoration5 style="width:300px; height:20px; justify-content: center;" />
+  <div style="display: flex; justify-content: center; width: 100%;">
+    <HeaderCard />
   </div>
 
   <el-row >
