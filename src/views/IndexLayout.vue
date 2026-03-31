@@ -6,6 +6,7 @@ import PressureChart from '../elements/PressureChart.vue'
 import EventChart from '../elements/EventChart.vue'
 import SensorTable from '../elements/SensorTable.vue'
 import CarCards from '../elements/CarCards.vue'
+import MapCard from '../elements/MapCard.vue'
 
 
 const progressData = [
@@ -17,8 +18,8 @@ const progressData = [
 const sensorStats = [
   { name: '深度相机', normal: 521, abnormal: 11 },
   { name: '激光雷达', normal: 489, abnormal: 29 },
-  { name: '压力传感', normal: 521, abnormal: 11 },
-  { name: '位移传感', normal: 489, abnormal: 29 }
+  { name: '压力传感器', normal: 521, abnormal: 11 },
+  { name: '位移传感器', normal: 489, abnormal: 29 }
 ]
 
 const currentCars = [
@@ -50,7 +51,7 @@ const currentCars = [
       <ProgressCards :progressData="progressData" />
       </div>
       <div class="chart-row" style="background-color: aliceblue;">
-      此处是地图
+      <MapCard />
       </div>
       <div class="chart-row" style="background-color: aliceblue;">
       此处是车辆日志表

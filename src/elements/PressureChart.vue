@@ -29,6 +29,7 @@
 <script setup>
 import { ref, shallowRef, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
 
 const CYAN = '#00F5FF'
 const TEXT = '#c0e4ff'
@@ -43,6 +44,10 @@ const ranges = [
 const currentRange = ref('day')
 const pressureChart = ref(null)
 const chart = shallowRef(null)
+
+// API数据状态
+const apiData = ref(null)
+const loading = ref(false)
 
 const dataMap = {
   day: {
@@ -59,6 +64,33 @@ const dataMap = {
   }
 }
 
+// 获取API数据或回退到默认数据
+function getChartData(rangeKey) {
+  if (apiData.value?.pressure) {
+    const pressureData = apiData.value.pressure
+    if (Array.isArray(pressureData) && pressureData.length > 0) {
+      let data, labels
+      if (rangeKey === 'day' && pressureData.length >= 6) {
+        data = pressureData.slice(0, 6).map(item => item.value || item.pressure || 0)
+        labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
+      } else if (rangeKey === 'week' && pressureData.length >= 7) {
+        data = pressureData.slice(0, 7).map(item => item.value || item.pressure || 0)
+        labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      } else if (rangeKey === 'month' && pressureData.length >= 7) {
+        data = pressureData.slice(0, 7).map(item => item.value || item.pressure || 0)
+        labels = ['1号', '5号', '10号', '15号', '20号', '25号', '30号']
+      }
+
+      if (data && labels) {
+        return { x: labels, y: data }
+      }
+    }
+  }
+
+  // 回退到默认数据
+  return dataMap[rangeKey]
+}
+
 function ensureChart() {
   if (!pressureChart.value) return null
   if (!chart.value) {
@@ -68,7 +100,7 @@ function ensureChart() {
 }
 
 function buildOption(rangeKey) {
-  const { x, y } = dataMap[rangeKey]
+  const { x, y } = getChartData(rangeKey)
   return {
     color: [CYAN],
     tooltip: {
@@ -136,7 +168,23 @@ function onResize() {
   chart.value?.resize()
 }
 
+// 加载API数据
+async function loadData() {
+  try {
+    loading.value = true
+    const res = await getDashboardInit()
+    apiData.value = res
+    console.log('气压数据加载成功:', res)
+  } catch (error) {
+    console.error('气压数据加载失败:', error)
+    // 失败时使用默认数据
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
+  loadData()
   renderChart()
   window.addEventListener('resize', onResize)
 })

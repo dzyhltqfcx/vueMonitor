@@ -52,6 +52,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
 
 /** 与 .donut-wrap 一致，初始化时若父级尚未算出宽高，ECharts 会得到 0×0 空白画布 */
 const DONUT_PX = 120
@@ -62,11 +63,13 @@ const TRACK = 'rgba(255, 255, 255, 0.12)'
 const TRACK_BG = 'rgba(255, 255, 255, 0.06)'
 
 const PLACEHOLDER_STATS = [
-  { name: '视频相机', normal: 489, abnormal: 29 },
+  { name: '深度相机', normal: 489, abnormal: 29 },
   { name: '激光雷达', normal: 521, abnormal: 11 },
   { name: '压力传感器', normal: 489, abnormal: 29 },
   { name: '位移传感器', normal: 521, abnormal: 11 }
 ]
+
+const internalSensorStats = ref([])
 
 const props = defineProps({
   /** 每项：name；在线数用 normal 或 online；离线数用 abnormal 或 offline */
@@ -86,7 +89,11 @@ const centerIcons = [
 
 const rows = computed(() => {
   const src =
-    props.sensorStats && props.sensorStats.length > 0 ? props.sensorStats : PLACEHOLDER_STATS
+    internalSensorStats.value && internalSensorStats.value.length > 0
+      ? internalSensorStats.value
+      : props.sensorStats && props.sensorStats.length > 0
+      ? props.sensorStats
+      : PLACEHOLDER_STATS
   return src.map((s) => {
     const online = Number(s.normal ?? s.online ?? 0)
     const offline = Number(s.abnormal ?? s.offline ?? 0)
@@ -220,6 +227,42 @@ function onWindowResize() {
   resizeCharts()
 }
 
+async function loadSensorData() {
+  try {
+    const res = await getDashboardInit('MONTH', 'TODAY')
+
+    // 1. 检查后端返回结构，按文档是 { code, message, data }
+    const data = res?.data || res
+
+    // 2. 取左侧面板的传感器数据示例（根据后端实际字段改）
+    const depth = data?.leftPanel?.depthCamera || { online: 0, offline: 0 }
+    const lidar = data?.leftPanel?.lidar || { online: 0, offline: 0 }
+    const pressure = data?.leftPanel?.pressureSensor || { online: 0, offline: 0 }
+    const displacement = data?.leftPanel?.displacementSensor || { online: 0, offline: 0 }
+
+    const parseItem = (name, apiRes) => {
+      if (!apiRes) return { name, normal: 0, abnormal: 0 }
+      return {
+        name,
+        normal: Number(apiRes.online ?? apiRes.normal ?? 0),
+        abnormal: Number(apiRes.offline ?? apiRes.abnormal ?? 0)
+      }
+    }
+
+    internalSensorStats.value = [
+      parseItem('深度相机', depth),
+      parseItem('激光雷达', lidar),
+      parseItem('压力传感器', pressure),
+      parseItem('位移传感器', displacement)
+    ]
+
+    console.log('sensor stats loaded', internalSensorStats.value)
+  } catch (err) {
+    console.warn('传感器数据加载失败', err)
+    internalSensorStats.value = PLACEHOLDER_STATS
+  }
+}
+
 watch(
   rows,
   () => {
@@ -238,6 +281,7 @@ watch(
 onMounted(() => {
   window.addEventListener('resize', onWindowResize)
   scheduleResizeSoon()
+  loadSensorData()
   if (typeof ResizeObserver !== 'undefined' && panelRef.value) {
     panelResizeObserver = new ResizeObserver(() => {
       resizeCharts()

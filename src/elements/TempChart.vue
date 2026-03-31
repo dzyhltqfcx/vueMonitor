@@ -56,6 +56,7 @@
 <script setup>
 import { ref, shallowRef, watch, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
 
 const CYAN = '#00F5FF'
 const AMBER = '#ffcb6b'
@@ -83,6 +84,10 @@ const chart = shallowRef(null)
 const chartDetailHost = ref(null)
 const chartDetail = shallowRef(null)
 const detailOpen = ref(false)
+
+// API数据状态
+const apiData = ref(null)
+const loading = ref(false)
 
 function wave(seed, i, len = 1) {
   const x = (i / Math.max(len - 1, 1)) * Math.PI * 2
@@ -156,6 +161,22 @@ const sparseSeries = computed(() => {
 })
 
 function genTempSeries(len, seed = 1) {
+  // 如果有API数据，使用API数据
+  if (apiData.value?.temperature) {
+    const tempData = apiData.value.temperature
+    if (Array.isArray(tempData) && tempData.length > 0) {
+      // 根据rangeMode调整数据长度
+      if (rangeMode.value === 'day' && tempData.length >= 24) {
+        return tempData.slice(0, 24).map(item => item.value || item.temp || 0)
+      } else if (rangeMode.value === 'week' && tempData.length >= 7) {
+        return tempData.slice(0, 7).map(item => item.value || item.temp || 0)
+      } else if (rangeMode.value === 'month' && tempData.length >= 30) {
+        return tempData.slice(0, 30).map(item => item.value || item.temp || 0)
+      }
+    }
+  }
+
+  // 回退到模拟数据
   const base = rangeMode.value === 'day' ? 22 : rangeMode.value === 'week' ? 21 : 20
   const amp = rangeMode.value === 'day' ? 4 : 5
   return Array.from({ length: len }, (_, i) => {
@@ -164,6 +185,22 @@ function genTempSeries(len, seed = 1) {
 }
 
 function genHumiditySeries(len, seed = 2) {
+  // 如果有API数据，使用API数据
+  if (apiData.value?.humidity) {
+    const humidityData = apiData.value.humidity
+    if (Array.isArray(humidityData) && humidityData.length > 0) {
+      // 根据rangeMode调整数据长度
+      if (rangeMode.value === 'day' && humidityData.length >= 24) {
+        return humidityData.slice(0, 24).map(item => item.value || item.humidity || 0)
+      } else if (rangeMode.value === 'week' && humidityData.length >= 7) {
+        return humidityData.slice(0, 7).map(item => item.value || item.humidity || 0)
+      } else if (rangeMode.value === 'month' && humidityData.length >= 30) {
+        return humidityData.slice(0, 30).map(item => item.value || item.humidity || 0)
+      }
+    }
+  }
+
+  // 回退到模拟数据
   const base = rangeMode.value === 'day' ? 55 : 58
   const amp = rangeMode.value === 'day' ? 12 : 15
   return Array.from({ length: len }, (_, i) => {
@@ -345,7 +382,23 @@ function onResize() {
   }
 }
 
+// 加载API数据
+async function loadData() {
+  try {
+    loading.value = true
+    const res = await getDashboardInit()
+    apiData.value = res
+    console.log('温度数据加载成功:', res)
+  } catch (error) {
+    console.error('温度数据加载失败:', error)
+    // 失败时使用模拟数据
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(() => {
+  loadData()
   renderMain()
   window.addEventListener('resize', onResize)
 })
