@@ -7,6 +7,7 @@ import EventChart from '../elements/EventChart.vue'
 import SensorTable from '../elements/SensorTable.vue'
 import CarCards from '../elements/CarCards.vue'
 import MapCard from '../elements/MapCard.vue'
+import TimeLocationCard from '@/elements/TimeLocationCard.vue'
 
 
 const progressData = [
@@ -29,8 +30,10 @@ const currentCars = [
 </script>
 
 <template>
-  <div style="display: flex; justify-content: center; width: 100%;">
-    <HeaderCard />
+
+  <div class="top-header">
+    <TimeLocationCard />
+    <HeaderCard class="center-title" />
   </div>
 
   <el-row >
@@ -100,6 +103,20 @@ const currentCars = [
 }
 
 .chart-row { margin-top: 20px; }
+
+.top-header {
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  padding: 10px 0;
+  position: relative;
+  width: 100%;
+}
+
+.top-header > :first-child {
+  position: absolute;
+  left: 20px;
+}
 </style>
 <!--
 

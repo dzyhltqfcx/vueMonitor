@@ -13,7 +13,7 @@ import { Decoration5 } from '@kjgl77/datav-vue3'
 </script>
 
 <style scoped>
-.header { padding: 0; background: #0f2143; color: #ffffff; text-align: center; width:40%; }
+.header { padding: 0; color: #ffffff; text-align: center; width:40%; height: 60px;}
 .header h1 { margin: 0; font-size: 1.8rem; }
 </style>
 
