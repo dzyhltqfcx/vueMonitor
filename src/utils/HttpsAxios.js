@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/user'
 import router from '@/router'
 
 const http = axios.create({
-  baseURL: 'https://111.229.161.57',
+  baseURL: '/api',
   timeout: 8000
 })
 

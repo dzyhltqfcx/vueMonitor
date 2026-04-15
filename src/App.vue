@@ -1,7 +1,9 @@
 <template>
   <div id="app" v-cloak>
     <transition name="slide-left">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
     </transition>
   </div>
 </template>

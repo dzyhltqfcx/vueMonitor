@@ -94,6 +94,10 @@ function wave(seed, i, len = 1) {
   return Math.sin(x * 1.3 + seed) * 0.5 + Math.sin(x * 0.7 + seed * 0.3) * 0.3
 }
 
+function round2(value) {
+  return typeof value === 'number' ? Math.round(value * 100) / 100 : value
+}
+
 function pad2(n) {
   return String(n).padStart(2, '0')
 }
@@ -161,18 +165,15 @@ const sparseSeries = computed(() => {
 })
 
 function genTempSeries(len, seed = 1) {
-  // 如果有API数据，使用API数据
-  if (apiData.value?.temperature) {
-    const tempData = apiData.value.temperature
-    if (Array.isArray(tempData) && tempData.length > 0) {
-      // 根据rangeMode调整数据长度
-      if (rangeMode.value === 'day' && tempData.length >= 24) {
-        return tempData.slice(0, 24).map(item => item.value || item.temp || 0)
-      } else if (rangeMode.value === 'week' && tempData.length >= 7) {
-        return tempData.slice(0, 7).map(item => item.value || item.temp || 0)
-      } else if (rangeMode.value === 'month' && tempData.length >= 30) {
-        return tempData.slice(0, 30).map(item => item.value || item.temp || 0)
-      }
+  // 如果有API数据，使用API数据；缺失点保持 null
+  const envTrend = apiData.value?.leftPanel?.environmentTrend
+  if (envTrend && Array.isArray(envTrend.metrics)) {
+    const tempMetric = envTrend.metrics.find((item) => item.metricKey === 'temperature')
+    if (tempMetric && Array.isArray(tempMetric.points)) {
+      return Array.from({ length: len }, (_, i) => {
+        const item = tempMetric.points[i]
+        return item ? round2(item.value ?? null) : null
+      })
     }
   }
 
@@ -185,18 +186,15 @@ function genTempSeries(len, seed = 1) {
 }
 
 function genHumiditySeries(len, seed = 2) {
-  // 如果有API数据，使用API数据
-  if (apiData.value?.humidity) {
-    const humidityData = apiData.value.humidity
-    if (Array.isArray(humidityData) && humidityData.length > 0) {
-      // 根据rangeMode调整数据长度
-      if (rangeMode.value === 'day' && humidityData.length >= 24) {
-        return humidityData.slice(0, 24).map(item => item.value || item.humidity || 0)
-      } else if (rangeMode.value === 'week' && humidityData.length >= 7) {
-        return humidityData.slice(0, 7).map(item => item.value || item.humidity || 0)
-      } else if (rangeMode.value === 'month' && humidityData.length >= 30) {
-        return humidityData.slice(0, 30).map(item => item.value || item.humidity || 0)
-      }
+  // 如果有API数据，使用API数据；缺失点保持 0
+  const envTrend = apiData.value?.leftPanel?.environmentTrend
+  if (envTrend && Array.isArray(envTrend.metrics)) {
+    const humMetric = envTrend.metrics.find((item) => item.metricKey === 'humidity')
+    if (humMetric && Array.isArray(humMetric.points)) {
+      return Array.from({ length: len }, (_, i) => {
+        const item = humMetric.points[i]
+        return item ? round2(item.value ?? 0) : 0
+      })
     }
   }
 
@@ -387,10 +385,11 @@ async function loadData() {
   try {
     loading.value = true
     const res = await getDashboardInit()
-    apiData.value = res
-    console.log('温度数据加载成功:', res)
+    apiData.value = res?.data || {}
+    console.log('温度数据加载成功:', res?.data)
   } catch (error) {
     console.error('温度数据加载失败:', error)
+    apiData.value = {}
     // 失败时使用模拟数据
   } finally {
     loading.value = false
@@ -403,7 +402,7 @@ onMounted(() => {
   window.addEventListener('resize', onResize)
 })
 
-watch([metric, rangeMode], () => {
+watch([metric, rangeMode, apiData], () => {
   renderMain()
   if (detailOpen.value) {
     nextTick(renderDetail)

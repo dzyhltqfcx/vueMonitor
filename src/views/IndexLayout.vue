@@ -30,60 +30,61 @@ const currentCars = [
 </script>
 
 <template>
+  <div class="dashboard-layout">
+    <div class="top-header">
+      <TimeLocationCard />
+      <HeaderCard class="center-title" />
+    </div>
 
-  <div class="top-header">
-    <TimeLocationCard />
-    <HeaderCard class="center-title" />
+    <el-row >
+      <el-col :span="6">
+        <div class="chart-row">
+        <SensorTable :sensorStats="sensorStats" />
+        </div>
+        <div class="chart-row">
+        <TempChart />
+        </div>
+        <div class="chart-row">
+        <PressureChart />
+        </div>
+      </el-col>
+
+      <el-col :span="12">
+        <div class="chart-row">
+        <ProgressCards :progressData="progressData" />
+        </div>
+        <div class="chart-row" style="background-color: aliceblue;">
+        <MapCard />
+        </div>
+        <div class="chart-row" style="background-color: aliceblue;">
+        此处是车辆日志表
+        </div>
+      </el-col>
+
+      <el-col :span="6">
+        <div class="chart-row">
+        <EventChart />
+        </div>
+        <div class="chart-row">
+        <CarCards :currentCars="currentCars" />
+        </div>
+        <div class="chart-row">
+        <el-row>
+          <el-col :span="12" style="background-color: aliceblue;">
+            <div>
+            此处是实时镜头1
+            </div>
+          </el-col>
+          <el-col :span="12" style="background-color: aliceblue;">
+            <div>
+            此处是实时镜头2
+            </div>
+          </el-col>
+        </el-row>
+        </div>
+      </el-col>
+    </el-row>
   </div>
-
-  <el-row >
-    <el-col :span="6">
-      <div class="chart-row">
-      <SensorTable :sensorStats="sensorStats" />
-      </div>
-      <div class="chart-row">
-      <TempChart />
-      </div>
-      <div class="chart-row">
-      <PressureChart />
-      </div>
-    </el-col>
-
-    <el-col :span="12">
-      <div class="chart-row">
-      <ProgressCards :progressData="progressData" />
-      </div>
-      <div class="chart-row" style="background-color: aliceblue;">
-      <MapCard />
-      </div>
-      <div class="chart-row" style="background-color: aliceblue;">
-      此处是车辆日志表
-      </div>
-    </el-col>
-
-    <el-col :span="6">
-      <div class="chart-row">
-      <EventChart />
-      </div>
-      <div class="chart-row">
-      <CarCards :currentCars="currentCars" />
-      </div>
-      <div class="chart-row">
-      <el-row>
-        <el-col :span="12" style="background-color: aliceblue;">
-          <div>
-          此处是实时镜头1
-          </div>
-        </el-col>
-        <el-col :span="12" style="background-color: aliceblue;">
-          <div>
-          此处是实时镜头2
-          </div>
-        </el-col>
-      </el-row>
-      </div>
-    </el-col>
-  </el-row>
 </template>
 
 <style>

@@ -69,7 +69,7 @@ const PLACEHOLDER_STATS = [
   { name: '位移传感器', normal: 521, abnormal: 11 }
 ]
 
-const internalSensorStats = ref([])
+const internalSensorStats = ref([...PLACEHOLDER_STATS])
 
 const props = defineProps({
   /** 每项：name；在线数用 normal 或 online；离线数用 abnormal 或 offline */
@@ -87,24 +87,14 @@ const centerIcons = [
   '<svg class="cen-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 19h14M7 19V8l4-3 4 3v11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12h6M9 15h6" stroke="currentColor" stroke-width="1.2"/></svg>'
 ]
 
-const rows = computed(() => {
-  const src =
-    internalSensorStats.value && internalSensorStats.value.length > 0
-      ? internalSensorStats.value
-      : props.sensorStats && props.sensorStats.length > 0
-      ? props.sensorStats
-      : PLACEHOLDER_STATS
+function mapData(src) {
   return src.map((s) => {
     const online = Number(s.normal ?? s.online ?? 0)
     const offline = Number(s.abnormal ?? s.offline ?? 0)
     const total = online + offline
     const pct = total > 0 ? Math.round((online / total) * 100) : 0
-    let onlinePct = 0
-    let offlinePct = 0
-    if (total > 0) {
-      onlinePct = Math.round((online / total) * 100)
-      offlinePct = 100 - onlinePct
-    }
+    const onlinePct = total > 0 ? Math.round((online / total) * 100) : 0
+    const offlinePct = total > 0 ? 100 - onlinePct : 0
     return {
       name: s.name ?? '—',
       online,
@@ -114,6 +104,18 @@ const rows = computed(() => {
       offlinePct
     }
   })
+}
+
+const rows = computed(() => {
+  const hasInternal = Array.isArray(internalSensorStats.value) && internalSensorStats.value.length > 0
+  const hasProps = Array.isArray(props.sensorStats) && props.sensorStats.length > 0
+  if (hasInternal) {
+    return mapData(internalSensorStats.value)
+  }
+  if (hasProps) {
+    return mapData(props.sensorStats)
+  }
+  return mapData(PLACEHOLDER_STATS)
 })
 
 /** 左侧环状图：底层满环作轨道，上层按在线/离线分割显示占比 */
@@ -195,9 +197,13 @@ function scheduleResizeSoon() {
 
 function bindChartHost(el, index) {
   if (!el) {
-    chartInstances[index]?.dispose()
-    chartInstances[index] = null
+    // 在 v-for 重新渲染期间，不要主动销毁实例，避免 chart 被误删
     return
+  }
+  const existing = chartInstances[index]
+  if (existing && existing.getDom() !== el) {
+    existing.dispose()
+    chartInstances[index] = null
   }
   if (!chartInstances[index]) {
     const w = el.clientWidth || DONUT_PX
@@ -230,31 +236,20 @@ function onWindowResize() {
 async function loadSensorData() {
   try {
     const res = await getDashboardInit('MONTH', 'TODAY')
+    console.log('原始返回:', res)
 
-    // 1. 检查后端返回结构，按文档是 { code, message, data }
-    const data = res?.data || res
+    const apiSensorStats = res?.data?.data?.leftPanel?.sensorStats
 
-    // 2. 取左侧面板的传感器数据示例（根据后端实际字段改）
-    const depth = data?.leftPanel?.depthCamera || { online: 0, offline: 0 }
-    const lidar = data?.leftPanel?.lidar || { online: 0, offline: 0 }
-    const pressure = data?.leftPanel?.pressureSensor || { online: 0, offline: 0 }
-    const displacement = data?.leftPanel?.displacementSensor || { online: 0, offline: 0 }
-
-    const parseItem = (name, apiRes) => {
-      if (!apiRes) return { name, normal: 0, abnormal: 0 }
-      return {
-        name,
-        normal: Number(apiRes.online ?? apiRes.normal ?? 0),
-        abnormal: Number(apiRes.offline ?? apiRes.abnormal ?? 0)
-      }
+    if (Array.isArray(apiSensorStats) && apiSensorStats.length > 0) {
+      internalSensorStats.value = apiSensorStats.map((item) => ({
+        name: item.sensorName ?? item.sensorType ?? '未知传感器',
+        normal: Number(item.onlineCount ?? 0),
+        abnormal: Number(item.offlineCount ?? 0)
+      }))
+    } else {
+      console.warn('后端返回的 sensorStats 为空或格式不对，使用占位数据', apiSensorStats)
+      internalSensorStats.value = PLACEHOLDER_STATS
     }
-
-    internalSensorStats.value = [
-      parseItem('深度相机', depth),
-      parseItem('激光雷达', lidar),
-      parseItem('压力传感器', pressure),
-      parseItem('位移传感器', displacement)
-    ]
 
     console.log('sensor stats loaded', internalSensorStats.value)
   } catch (err) {
