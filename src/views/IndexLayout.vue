@@ -8,7 +8,7 @@ import SensorTable from '../elements/SensorTable.vue'
 import CarCards from '../elements/CarCards.vue'
 import MapCard from '../elements/MapCard.vue'
 import TimeLocationCard from '@/elements/TimeLocationCard.vue'
-
+import Carlog from '@/elements/Carlog.vue'
 
 const progressData = [
   { label: '已完工', value: 15, unit: 'km', percent: 75 },
@@ -31,56 +31,41 @@ const currentCars = [
 
 <template>
   <div class="dashboard-layout">
+    <!-- 顶部标题 -->
     <div class="top-header">
       <TimeLocationCard />
       <HeaderCard class="center-title" />
     </div>
 
-    <el-row >
-      <el-col :span="6">
-        <div class="chart-row">
-        <SensorTable :sensorStats="sensorStats" />
-        </div>
-        <div class="chart-row">
-        <TempChart />
-        </div>
-        <div class="chart-row">
-        <PressureChart />
-        </div>
+    <!-- 主内容三列布局：自动等高 + 底部对齐 -->
+    <el-row class="main-row">
+      <!-- 左列 -->
+      <el-col :span="6" class="col">
+        <SensorTable :sensorStats="sensorStats" class="box" />
+        <TempChart class="box" />
+        <PressureChart class="box" />
       </el-col>
 
-      <el-col :span="12">
-        <div class="chart-row">
-        <ProgressCards :progressData="progressData" />
-        </div>
-        <div class="chart-row" style="background-color: aliceblue;">
-        <MapCard />
-        </div>
-        <div class="chart-row" style="background-color: aliceblue;">
-        此处是车辆日志表
-        </div>
+      <!-- 中列 -->
+      <el-col :span="12" class="col">
+        <ProgressCards :progressData="progressData" class="box" />
+        <MapCard class="box map-box" />
+        <Carlog class="box log-box" />
       </el-col>
 
-      <el-col :span="6">
-        <div class="chart-row">
-        <EventChart />
-        </div>
-        <div class="chart-row">
-        <CarCards :currentCars="currentCars" />
-        </div>
-        <div class="chart-row">
-        <el-row>
-          <el-col :span="12" style="background-color: aliceblue;">
-            <div>
-            此处是实时镜头1
-            </div>
-          </el-col>
-          <el-col :span="12" style="background-color: aliceblue;">
-            <div>
-            此处是实时镜头2
-            </div>
-          </el-col>
-        </el-row>
+      <!-- 右列 -->
+      <el-col :span="6" class="col">
+        <EventChart class="box" />
+        <CarCards :currentCars="currentCars" class="box" />
+        <div class="box camera-box">
+          <el-row :gutter="10">
+            <el-col :span="12">
+              <div class="camera-item"><RealtimeCamera /></div>
+            </el-col>
+            <el-col :span="12">
+              <div class="camera-item"><RealtimeCamera /></div>
+            </el-col>
+          </el-row>
         </div>
       </el-col>
     </el-row>
@@ -88,26 +73,27 @@ const currentCars = [
 </template>
 
 <style>
-.el-row {
-  margin-bottom: 20px;
-}
-.el-row:last-child {
-  margin-bottom: 0;
-}
-.el-col {
-  border-radius: 4px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
+/* 全局页面：占满全屏 */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #020b1f;
 }
 
-.chart-row { margin-top: 20px; }
+.dashboard-layout {
+  min-height: 100vh;
+  padding: 0 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
 
+/* 顶部栏 */
 .top-header {
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: center;
   padding: 10px 0;
   position: relative;
@@ -118,46 +104,58 @@ const currentCars = [
   position: absolute;
   left: 20px;
 }
+
+/* 主布局：三列 自动等高 */
+.main-row {
+  flex: 1;
+  display: flex;
+  margin: 0 -10px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0 10px;
+}
+
+/* 所有盒子自动占满高度，最后一个盒子拉伸到底部 */
+.el-row {
+  display: flex;
+  flex: 1;
+}
+.el-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 相机样式 */
+.camera-box {
+  background: #031228;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  border-radius: 10px;
+  color: #c0e4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 15px;
+}
+
+.camera-item {
+  padding: 20px;
+  background: rgba(0, 245, 255, 0.05);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  border-radius: 8px;
+}
+
+/* 表格高度统一 */
+.log-box {
+  height: auto !important;
+}
+
+.map-box {
+  min-height: 280px;
+}
 </style>
-<!--
-
-<template>
-  <el-container class="dashboard">
-
-
-    <el-main class="content">
-
-      <el-row :gutter="20" class="chart-row">
-        <el-col :span="8">
-
-        </el-col>
-        <el-col :span="12">
-        </el-col>
-      </el-row>
-
-
-      <el-row :gutter="20" class="chart-row">
-        <el-col :span="12">
-          <TempChart />
-        </el-col>
-        <el-col :span="12">
-
-        </el-col>
-      </el-row>
-
-      <el-row :gutter="20" class="chart-row">
-        <el-col :span="16">
-
-        </el-col>
-      </el-row>
-
-
-    </el-main>
-  </el-container>
-</template>
-
-<style scoped>
-.dashboard { background: #020b1f; min-height: 100vh; color: #c0e4ff; }
-.content { padding: 20px; }
-.chart-row { margin-top: 20px; }
-</style> -->

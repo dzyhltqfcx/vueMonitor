@@ -1,28 +1,114 @@
 <template>
-  <el-row :gutter="20">
-    <el-col :span="12" v-for="car in currentCars" :key="car.name">
-      <el-card class="panel-card" shadow="hover">
-        <div class="car-panel">
-          <h3>{{ car.name }}</h3>
-          <p>平均时速：{{ car.speed }} km/h</p>
-          <p>状态：{{ car.state }}</p>
-          <p>当前地点：{{ car.location }}</p>
-          <p>传感器数：{{ car.sensors }}</p>
-          <p>在线：{{ car.online }} 异常：{{ car.abnormal }}</p>
+  <div class="car-cards-wrapper">
+    <el-card class="car-card" v-for="(car, idx) in currentCars" :key="idx">
+      <div class="car-card-body">
+        <div class="car-title">{{ car.name }}</div>
+
+        <div class="speed-box">
+          <div class="speed-text">平均时速</div>
+          <div class="speed-num">{{ car.speed }} km/h</div>
+          <div class="car-status">{{ car.state }}</div>
         </div>
-      </el-card>
-    </el-col>
-  </el-row>
+
+        <div class="car-location">
+          当前位置：{{ car.location }}
+        </div>
+
+        <div class="sensor-list">
+          <div class="sensor-item">
+            <span>传感器总数</span>
+            <span>{{ car.sensors }}</span>
+            <span>↑</span>
+          </div>
+          <div class="sensor-item">
+            <span>在线</span>
+            <span>{{ car.online }}</span>
+            <span>↑</span>
+          </div>
+          <div class="sensor-item warning">
+            <span>异常</span>
+            <span>{{ car.abnormal }}</span>
+            <span>↑</span>
+          </div>
+        </div>
+      </div>
+    </el-card>
+  </div>
 </template>
 
 <script setup>
-defineProps({
-  currentCars: Array
+const props = defineProps({
+  currentCars: {
+    type: Array,
+    default: () => []
+  }
 })
 </script>
 
 <style scoped>
-.panel-card { background: rgba(5, 35, 65, 0.8); border: 1px solid #0f4f87; border-radius: 8px; }
-.car-panel h3 { margin: 0 0 8px 0; color: #7de1ff; }
-.car-panel p { margin: 2px 0; }
+/* 横向并排 */
+.car-cards-wrapper {
+  display: flex;
+  gap: 15px;
+}
+.car-card {
+  flex: 1;
+  background: rgba(3, 18, 40, 0.92);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  color: #c0e4ff;
+}
+.car-card-body {
+  padding: 14px;
+}
+.car-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #00f5ff;
+  margin-bottom: 10px;
+}
+.speed-box {
+  text-align: center;
+  margin: 10px 0;
+}
+.speed-text {
+  font-size: 14px;
+  color: #e6f7ff;
+}
+.speed-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin: 4px 0;
+}
+.car-status {
+  font-size: 14px;
+  color: #00f5ff;
+}
+.car-location {
+  font-size: 14px;
+  color: #ffb766;
+  padding: 8px 0;
+  border-top: 1px solid rgba(0, 245, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+  margin: 10px 0;
+}
+.sensor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sensor-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.sensor-item.warning span:nth-child(2) {
+  color: #00f5ff;
+  font-weight: 700;
+}
+:deep(.el-card__body) {
+  padding: 0 !important;
+}
 </style>
