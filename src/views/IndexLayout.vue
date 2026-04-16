@@ -1,4 +1,5 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import HeaderCard from '../elements/HeaderCard.vue'
 import ProgressCards from '../elements/ProgressCards.vue'
 import TempChart from '../elements/TempChart.vue'
@@ -9,6 +10,7 @@ import CarCards from '../elements/CarCards.vue'
 import MapCard from '../elements/MapCard.vue'
 import TimeLocationCard from '@/elements/TimeLocationCard.vue'
 import Carlog from '@/elements/Carlog.vue'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
 
 const progressData = [
   { label: '已完工', value: 15, unit: 'km', percent: 75 },
@@ -23,10 +25,20 @@ const sensorStats = [
   { name: '位移传感器', normal: 489, abnormal: 29 }
 ]
 
-const currentCars = [
-  { name: '车辆A001', speed: 50, state: '行驶中', location: '距离入口2km', sensors: 43, online: 39, abnormal: 4 },
-  { name: '车辆A002', speed: 60, state: '自动泊车', location: '距离入口10km', sensors: 43, online: 38, abnormal: 5 }
-]
+const currentCars = ref([])
+
+async function fetchCarCards() {
+  try {
+    const res = await getDashboardInit()
+    currentCars.value = res?.data?.rightPanel?.vehicleCards || []
+  } catch (error) {
+    console.error('车辆卡片数据获取失败：', error)
+  }
+}
+
+onMounted(() => {
+  fetchCarCards()
+})
 </script>
 
 <template>

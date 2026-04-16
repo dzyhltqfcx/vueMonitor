@@ -66,28 +66,37 @@ const dataMap = {
 
 // 获取API数据或回退到默认数据
 function getChartData(rangeKey) {
-  if (apiData.value?.pressure) {
-    const pressureData = apiData.value.pressure
-    if (Array.isArray(pressureData) && pressureData.length > 0) {
-      let data, labels
-      if (rangeKey === 'day' && pressureData.length >= 6) {
-        data = pressureData.slice(0, 6).map(item => item.value || item.pressure || 0)
+  if (!apiData.value) return dataMap[rangeKey]
+
+  const pressureTrend = apiData.value.data?.leftPanel?.pressureTrend
+  if (pressureTrend && Array.isArray(pressureTrend.metrics) && pressureTrend.metrics.length > 0) {
+    const points = pressureTrend.metrics[0].points
+    if (Array.isArray(points) && points.length > 0) {
+      let data = []
+      let labels = []
+
+      if (rangeKey === 'day') {
+        const targetPoints = points.slice(0, 6)
+        data = targetPoints.map(item => item.value || 0)
         labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
-      } else if (rangeKey === 'week' && pressureData.length >= 7) {
-        data = pressureData.slice(0, 7).map(item => item.value || item.pressure || 0)
+      } else if (rangeKey === 'week') {
+        const targetPoints = points.slice(0, 7)
+        data = targetPoints.map(item => item.value || 0)
         labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-      } else if (rangeKey === 'month' && pressureData.length >= 7) {
-        data = pressureData.slice(0, 7).map(item => item.value || item.pressure || 0)
+      } else if (rangeKey === 'month') {
+        const targetPoints = points.slice(0, 7)
+        data = targetPoints.map(item => item.value || 0)
         labels = ['1号', '5号', '10号', '15号', '20号', '25号', '30号']
       }
 
-      if (data && labels) {
+      if (data.length > 0) {
+        console.log('🎉 成功读取到接口气压数据！', data)
         return { x: labels, y: data }
       }
     }
   }
 
-  // 回退到默认数据
+  console.warn('⚠️  未找到气压数据，走兜底默认值')
   return dataMap[rangeKey]
 }
 
@@ -142,6 +151,7 @@ function buildOption(rangeKey) {
         showSymbol: true,
         symbol: 'circle',
         symbolSize: 6,
+        connectNulls: true,
         data: y,
         lineStyle: {
           width: 2,
@@ -175,6 +185,7 @@ async function loadData() {
     const res = await getDashboardInit()
     apiData.value = res
     console.log('气压数据加载成功:', res)
+    renderChart()
   } catch (error) {
     console.error('气压数据加载失败:', error)
     // 失败时使用默认数据
