@@ -41,7 +41,7 @@ function updateTime() {
 onMounted(() => {
   // 立即执行一次
   updateTime()
-  
+
   // 每秒强制刷新
   timer = setInterval(updateTime, 1000)
 })

@@ -11,6 +11,7 @@ import MapCard from '../elements/MapCard.vue'
 import TimeLocationCard from '@/elements/TimeLocationCard.vue'
 import Carlog from '@/elements/Carlog.vue'
 import { getDashboardInit } from '@/apis/sensors/dashboard'
+import TraceLine from '@/elements/TraceLine.vue'
 
 const progressData = [
   { label: '已完工', value: 15, unit: 'km', percent: 75 },
@@ -81,6 +82,10 @@ onMounted(() => {
         </div>
       </el-col>
     </el-row>
+  </div>
+
+  <div>
+    <TraceLine />
   </div>
 </template>
 
