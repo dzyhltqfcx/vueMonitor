@@ -52,23 +52,66 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  statData: {
-    type: Object,
-    required: true,
-    default: () => ({
-      totalEvent: 12383,
-      stopCount: 489,
-      startCount: 489,
-      loadCount: 489,
-      abnormalCount: 489
-    })
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
+
+const statData = ref({
+  totalEvent: 0,
+  stopCount: 0,
+  startCount: 0,
+  loadCount: 0,
+  abnormalCount: 0
+})
+
+let refreshTimer = null
+
+function mapVehicleEventStats(stats) {
+  return {
+    totalEvent: stats?.totalCount || 0,
+    stopCount: stats?.stopEventCount || 0,
+    startCount: stats?.departureEventCount || 0,
+    abnormalCount: stats?.abnormalCount || 0,
+    loadCount: stats?.alarmEventCount || 0
+  }
+}
+
+async function fetchData() {
+  try {
+    const res = await getDashboardInit()
+    console.log('完整接口返回:', res) // 加个日志，方便你调试
+
+    // 修正：正确路径是 res.data.rightPanel.vehicleEventStats
+    const rightPanel = res?.data?.rightPanel
+    const vehicleEventStats = rightPanel?.vehicleEventStats
+
+    if (vehicleEventStats) {
+      statData.value = mapVehicleEventStats(vehicleEventStats)
+      console.log('映射后的数据:', statData.value)
+    } else {
+      console.warn('未找到 vehicleEventStats 数据，请检查接口返回结构')
+    }
+  } catch (error) {
+    console.error('获取车辆统计数据失败:', error)
+    ElMessage.error('车辆统计数据加载失败')
+  }
+}
+
+onMounted(() => {
+  fetchData()
+  refreshTimer = setInterval(fetchData, 15000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
   }
 })
 </script>
 
 <style scoped>
-/* 样式和之前完全一致，无需修改 */
+/* 样式保持不变 */
 .vehicle-stat-card {
   width: 100%;
   height: 100%;

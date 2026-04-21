@@ -20,12 +20,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
+
 const progressList = ref([
-  { label: '已完工', value: 15, unit: 'km', percent: 75 },
-  { label: '正在运行车辆', value: 2, unit: '辆', percent: 100 },
-  { label: '在线传感器', value: 88, unit: '个', percent: 85 }
+  { label: '已完工', value: 0, unit: 'km', percent: 0 },
+  { label: '正在运行车辆', value: 0, unit: '辆', percent: 0 },
+  { label: '在线传感器', value: 0, unit: '个', percent: 0 }
 ])
+
+let refreshTimer = null
+
+function normalizePercent(value) {
+  const num = Number(value)
+  if (Number.isNaN(num)) return 0
+  return Math.max(0, Math.min(100, num))
+}
+
+async function fetchProgressData() {
+  try {
+    const res = await getDashboardInit()
+    const centerPanel = res?.data?.centerPanel || res?.centerPanel
+    if (!centerPanel) return
+
+    const tunnelProgress = centerPanel.tunnelProgress || {}
+    const vehicleRuntimeStats = centerPanel.vehicleRuntimeStats || {}
+    const sensorRuntimeStats = centerPanel.sensorRuntimeStats || {}
+
+    progressList.value = [
+      {
+        label: '已完工',
+        value: tunnelProgress.completedDistanceKm ?? 0,
+        unit: 'km',
+        percent: normalizePercent(tunnelProgress.progressPercent ?? 0)
+      },
+      {
+        label: '正在运行车辆',
+        value: vehicleRuntimeStats.activeVehicleCount ?? 0,
+        unit: '辆',
+        percent: normalizePercent(vehicleRuntimeStats.normalPercent ?? 0)
+      },
+      {
+        label: '在线传感器',
+        value: sensorRuntimeStats.onlineCount ?? 0,
+        unit: '个',
+        percent: normalizePercent(sensorRuntimeStats.onlinePercent ?? 0)
+      }
+    ]
+  } catch (err) {
+    console.error('进度卡片数据加载失败', err)
+  }
+}
+
+onMounted(() => {
+  fetchProgressData()
+  refreshTimer = setInterval(fetchProgressData, 15000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+})
 </script>
 
 <style scoped>

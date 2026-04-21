@@ -11,13 +11,8 @@ import MapCard from '../elements/MapCard.vue'
 import TimeLocationCard from '@/elements/TimeLocationCard.vue'
 import Carlog from '@/elements/Carlog.vue'
 import { getDashboardInit } from '@/apis/sensors/dashboard'
-import TraceLine from '@/elements/TraceLine.vue'
-
-const progressData = [
-  { label: '已完工', value: 15, unit: 'km', percent: 75 },
-  { label: '正在运行车辆', value: 2, unit: '辆', percent: 100 },
-  { label: '在线传感器', value: 88, unit: '个', percent: 85 }
-]
+import TraceLine from '../elements/TraceLine.vue'
+import RealtimeCamera from '@/elements/RealtimeCamera.vue'
 
 const sensorStats = [
   { name: '深度相机', normal: 521, abnormal: 11 },
@@ -61,7 +56,7 @@ onMounted(() => {
 
       <!-- 中列 -->
       <el-col :span="12" class="col">
-        <ProgressCards :progressData="progressData" class="box" />
+        <ProgressCards class="box progress-top" />
         <MapCard class="box map-box" />
         <Carlog class="box log-box" />
       </el-col>
@@ -69,7 +64,7 @@ onMounted(() => {
       <!-- 右列 -->
       <el-col :span="6" class="col">
         <EventChart class="box" />
-        <CarCards :currentCars="currentCars" class="box" />
+        <CarCards :currentCars="currentCars" class="box car-card-long" />
         <div class="box camera-box">
           <el-row :gutter="10">
             <el-col :span="12">
@@ -122,32 +117,74 @@ body {
   left: 20px;
 }
 
-/* 主布局：三列 自动等高 */
+/* 主布局：三列 */
 .main-row {
   flex: 1;
   display: flex;
   margin: 0 -10px;
+  gap: 10px;
 }
 
 .col {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 0 10px;
+  gap: 12px; /* 组件上下间距 */
 }
 
-/* 所有盒子自动占满高度，最后一个盒子拉伸到底部 */
-.el-row {
-  display: flex;
+/* 统一高度填充 */
+.box {
   flex: 1;
-}
-.el-col {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  min-height: 0;
 }
 
+/* ====================== */
+/* 中间列：加高顶部进度卡片 */
+/* ====================== */
+.progress-top {
+  min-height: 92px !important;
+  flex: 0.65 !important;
+}
+
+/* 中间地图：拉高填满 */
+.map-box {
+  min-height: 300px !important;
+  flex: 1.5 !important;
+}
+
+/* ====================== */
+/* 右侧：拉长车辆卡片 */
+/* ====================== */
+.car-card-long {
+  flex: 1 !important;
+  min-height: 150px !important;
+}
+
+/* 右侧摄像头：只留空 */
+.camera-box {
+  flex: 1 !important;
+}
+
+/* ====================== */
+/* 传感器表格：字体放大 */
+/* ====================== */
+:deep(.sensor-table) {
+  font-size: 15px !important;
+}
+:deep(.sensor-table .stats-label) {
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+:deep(.sensor-table th) {
+  font-size: 16px !important;
+}
+:deep(.sensor-table td) {
+  font-size: 15px !important;
+}
+
+/* ====================== */
 /* 相机样式 */
+/* ====================== */
 .camera-box {
   background: #031228;
   border: 1px solid rgba(0, 245, 255, 0.3);
@@ -167,12 +204,7 @@ body {
   border-radius: 8px;
 }
 
-/* 表格高度统一 */
 .log-box {
   height: auto !important;
-}
-
-.map-box {
-  min-height: 280px;
 }
 </style>

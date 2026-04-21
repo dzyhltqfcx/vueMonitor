@@ -13,10 +13,10 @@
       </thead>
       <tbody>
         <tr v-for="(item, index) in logList" :key="index">
-          <td>{{ item.id }}</td>
-          <td>{{ item.event }}</td>
-          <td>{{ item.time }}</td>
-          <td class="status">{{ item.status }}</td>
+          <td>{{ item.vehicleCode }}</td>
+          <td>{{ item.eventLabel }}</td>
+          <td>{{ formatTime(item.eventTime) }}</td>
+          <td class="status" :class="item.statusClass">{{ item.statusLabel }}</td>
         </tr>
       </tbody>
     </table>
@@ -24,16 +24,90 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getDashboardInit } from '@/apis/sensors/dashboard'
 
-// 模拟数据（后端接口替换这里即可）
-const logList = ref([
-  { id: 'A0002', event: '停靠', time: '2026-06-01 08:00:00', status: '正常' },
-  { id: 'A0001', event: '行驶', time: '2026-06-01 14:00:00', status: '正常' },
-  { id: 'A0002', event: '行政', time: '2026-06-01 13:00:00', status: '正常' },
-  { id: 'A0001', event: '卸货', time: '2026-06-01 17:00:00', status: '正常' },
-  { id: 'A0002', event: '停靠', time: '2026-06-01 18:00:00', status: '正常' },
-])
+const logList = ref([])
+let refreshTimer = null
+
+function formatTime(isoStr) {
+  if (!isoStr) return '-'
+
+  const date = new Date(isoStr)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+function mapStatus(status) {
+  switch (status) {
+    case 'NORMAL':
+      return { label: '正常', className: 'status-normal' }
+    case 'ABNORMAL':
+      return { label: '异常', className: 'status-abnormal' }
+    default:
+      return { label: status || '未知', className: 'status-unknown' }
+  }
+}
+
+function mapEventLabel(log) {
+  if (log?.eventLabel) return log.eventLabel
+
+  const map = {
+    STOP: '停靠',
+    BRAKE: '制动',
+    RUNNING: '行驶',
+    LOAD: '装载',
+    UNLOAD: '卸货'
+  }
+
+  return map[log?.eventType] || log?.eventType || '未知事件'
+}
+
+async function fetchLogs() {
+  try {
+    const res = await getDashboardInit()
+    const vehicleLogs = res?.data?.centerPanel?.vehicleLogs || res?.centerPanel?.vehicleLogs || []
+
+    if (Array.isArray(vehicleLogs)) {
+      logList.value = vehicleLogs.map(log => {
+        const statusInfo = mapStatus(log?.status)
+
+        return {
+          ...log,
+          eventLabel: mapEventLabel(log),
+          statusLabel: statusInfo.label,
+          statusClass: statusInfo.className
+        }
+      })
+    } else {
+      logList.value = []
+    }
+  } catch (error) {
+    console.error('获取车辆日志失败:', error)
+    ElMessage.error('车辆日志加载失败')
+  }
+}
+
+onMounted(() => {
+  fetchLogs()
+  refreshTimer = setInterval(fetchLogs, 15000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+})
 </script>
 
 <style scoped>
@@ -82,8 +156,19 @@ const logList = ref([
 
 /* 状态列：正常 → 青蓝色 */
 .status {
-  color: #00f5ff;
   font-weight: 600;
+}
+
+.status-normal {
+  color: #00f5ff;
+}
+
+.status-abnormal {
+  color: #ff6b6b;
+}
+
+.status-unknown {
+  color: #c0e4ff;
 }
 
 /* hover 行效果 */

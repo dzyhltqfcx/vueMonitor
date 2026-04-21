@@ -2,7 +2,6 @@
   <div class="track-container">
     <div class="track-meta">
       <span>总里程：20 km</span>
-      <span>数据轮询：每 10 秒更新</span>
     </div>
 
     <div
@@ -10,7 +9,8 @@
       v-for="(car, index) in trackCars"
       :key="car.vehicleCode || car.name || index"
     >
-      <span class="track-label" :class="index === 0 ? 'left' : 'right'">
+      <!-- 统一显示在左侧 -->
+      <span class="track-label left">
         {{ car.vehicleCode || car.name || `车辆${index + 1}` }}
       </span>
       <div class="track-path">
@@ -152,10 +152,6 @@ onBeforeUnmount(() => {
 
 .track-label.left {
   left: 0;
-}
-
-.track-label.right {
-  right: 0;
 }
 
 .track-path {
